@@ -136,7 +136,7 @@ void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length){
 	for(size_t i = 0; i <padded_length / BLOCK_SIZE; i ++)free(blocks[i]);
 	free(blocks);
 }
-int floyd_collision(){
+int floyd_collision(){ //TODO
 	uint8_t* message = malloc(MESSAGE_SIZE);
 	uint64_t number_iterations = 0;
 	if(message == NULL){
@@ -147,14 +147,29 @@ int floyd_collision(){
 	tth_t_print_message(message,MESSAGE_SIZE,"message");
 	int found = 0;
 	uint8_t h1[HASH_SIZE],h2[HASH_SIZE];
-	while(!found){
+	tth_t_calc_hash(h1,message,MESSAGE_SIZE);
+	tth_t_calc_hash(h2,message,MESSAGE_SIZE);
+	uint8_t* tmp1 = malloc(5);
+	uint8_t* tmp2 = malloc(5);
+	while(found != 2){
 		number_iterations++;
-		tth_t_calc_hash(h1,message,MESSAGE_SIZE);
-		tth_t_calc_hash(h2,h1,HASH_SIZE);
+		if(found == 1)
+			memcpy(tmp2,h2,HASH_SIZE);
+		memcpy(tmp1,h1,HASH_SIZE);
+		tth_t_calc_hash(h1,h1,HASH_SIZE);
+		tth_t_calc_hash(h2,h2,HASH_SIZE);
+		if(found == 0){
+			memcpy(tmp2,h2,HASH_SIZE);
+			tth_t_calc_hash(h2,h2,HASH_SIZE);
+		}
 		if(tth_t_compare(h1,h2) == 0){
-			found = 1;
-			tth_t_print_message(h1,HASH_SIZE,"hash 1");
-			tth_t_print_message(h1,HASH_SIZE,"hash 2");
+			tth_t_print_message(tmp1,HASH_SIZE,"m1");
+			tth_t_print_message(tmp2,HASH_SIZE,"m2");
+			tth_t_print_message(h2,HASH_SIZE,"h2");
+			tth_t_print_message(h1,HASH_SIZE,"h1");
+			found++;
+			if(found == 1)
+				tth_t_calc_hash(h1,message,MESSAGE_SIZE);
 		}
 	}
 	return number_iterations;
