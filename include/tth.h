@@ -6,10 +6,13 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/stat.h>
 #define BLOCK_SIZE 25
 #define HASH_SIZE 5
+#define DATA_BLOCK_SIZE 512
 #define DEBUG 0
 #define MESSAGE_SIZE 100
+#define HEXA 1
 /**
 *@brief This function simply Pads a message.
 *			This function must be called only after checking that the padding is needed.
@@ -68,8 +71,10 @@ void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length);
 int floyd_collision();
 
 /**
- * 
- * 
+ * @brief This function reads a file and store it in a array of blocks of size 512.
+ *        This function also make sure the values are between 0 and 63.
+ * @param filename The name of the file to read from.
+ * @return Returns an array of blocks of size 512. 
 */
-uint8_t** 
+uint8_t** generate_blocks_from_file(char* filename,size_t* number_blocks);
 #endif //TTH_H

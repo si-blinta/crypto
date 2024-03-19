@@ -2,6 +2,7 @@
     "files.associations": {
         "tth.h": "c",
         "stdint.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "stat.h": "c"
     }
 }

@@ -3,6 +3,7 @@
 #include "tth.h"
 
 typedef struct{
+    int hash_number;
     uint8_t hash[HASH_SIZE];
     merkle_tree* left;
     merkle_tree* right;
@@ -15,8 +16,14 @@ typedef struct{
 merkle_tree* merkle_tree_init();
 
 
-
-
+/**
+ * @brief This function put a hash value in a merkle tree.
+ * @param block_number The block number of the hash.
+ * @param hash The hash value to store.
+ * @param tree The merkle tree.
+ * 
+*/
+void merkle_tree_put(int block_number,uint8_t hash[HASH_SIZE], merkle_tree* tree);
 
 
 

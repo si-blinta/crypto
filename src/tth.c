@@ -19,7 +19,12 @@ void tth_t_print_message(uint8_t* message,size_t message_length,char* info){
 	printf("---------------------message----------------------------\n");
 	printf("%s\n",info);
 	printf("[");
-	for(size_t i = 0; i < message_length; i++)printf("%u ",message[i]);
+	for(size_t i = 0; i < message_length; i++)
+#if HEXA
+	printf("%02x ",message[i]);
+#else
+	printf("%u ",message[i]);
+#endif//HEXA
 	printf("]\n");
 
 }
@@ -46,8 +51,27 @@ void tth_t_print_blocks(uint8_t** blocks, size_t blocks_size){
 		printf("---block#%ld----\n[",i);
 		for(size_t j =0;j<BLOCK_SIZE;j++){
 			if(j%HASH_SIZE == 0)printf("\n");
+#if HEXA
+			printf("%02x ",blocks[i][j]);
+#else
 			printf("%u ",blocks[i][j]);
-			
+#endif //HEXA			
+		}
+		printf("\n]\n");
+		printf("--------------\n");
+	}	
+}
+void tth_t_print_data_blocks(uint8_t** blocks, size_t blocks_size){	
+	printf("------------------DATA BLOCKS-----------------------\n");
+	for(size_t i = 0; i < blocks_size; i++){
+		printf("---block#%ld----\n[",i);
+		for(size_t j =0;j<BLOCK_SIZE;j++){
+			if(j%HASH_SIZE == 0)printf("\n");
+#if HEXA
+			printf("%02x ",blocks[i][j]);
+#else
+			printf("%u ",blocks[i][j]);
+#endif //HEXA			
 		}
 		printf("\n]\n");
 		printf("--------------\n");
@@ -180,6 +204,45 @@ int floyd_collision(){ //TODO
 	tth_t_print_message(h2,HASH_SIZE,"h2");
 	tth_t_print_message(h1,HASH_SIZE,"h1");
 	return number_iterations;
+}
+uint8_t** generate_blocks_from_file(char* filename,size_t* number_blocks){
+	FILE* file = fopen(filename,"rb");
+	if(file == NULL){
+		perror("[generate_blocks_from_file][fopen]");
+		return NULL;
+	}
+	struct stat st;
+	stat(filename, &st);
+	size_t size = st.st_size;
+	size_t remaining = size % DATA_BLOCK_SIZE;
+	if(remaining != 0){
+		size+=DATA_BLOCK_SIZE-remaining;//Padding
+	}
+	*number_blocks = size / DATA_BLOCK_SIZE;
+	uint8_t** data_blocks = malloc(*number_blocks * sizeof(uint8_t*));
+	if(data_blocks == NULL){
+		perror("[generate_blocks_from_file][first malloc]");
+		return NULL;
+	} 
+	for(size_t i = 0; i < *number_blocks; i++){
+		data_blocks[i] = malloc(DATA_BLOCK_SIZE);
+		if(data_blocks[i] == NULL){
+			perror("[generate_blocks_from_file][second malloc]");
+			return NULL;
+		}
+		memset(data_blocks[i],0,DATA_BLOCK_SIZE);
+	}
+	for(size_t i = 0; i < *number_blocks; i++){
+		size_t bytes_read = fread(data_blocks[i],1,DATA_BLOCK_SIZE,file);
+		if(bytes_read < DATA_BLOCK_SIZE){
+			data_blocks[i][bytes_read] = 32; 
+		}
+		for(size_t j = 0 ; j < DATA_BLOCK_SIZE ; j++)data_blocks[i][j]%=64;
+
+	}
+	fclose(file);
+	return data_blocks;
+
 }
 
 
