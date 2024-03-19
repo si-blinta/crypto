@@ -151,27 +151,34 @@ int floyd_collision(){ //TODO
 	tth_t_calc_hash(h2,message,MESSAGE_SIZE);
 	uint8_t* tmp1 = malloc(5);
 	uint8_t* tmp2 = malloc(5);
-	while(found != 2){
+	while(!found ){
+		usleep(10);
 		number_iterations++;
-		if(found == 1)
-			memcpy(tmp2,h2,HASH_SIZE);
 		memcpy(tmp1,h1,HASH_SIZE);
 		tth_t_calc_hash(h1,h1,HASH_SIZE);
 		tth_t_calc_hash(h2,h2,HASH_SIZE);
-		if(found == 0){
-			memcpy(tmp2,h2,HASH_SIZE);
-			tth_t_calc_hash(h2,h2,HASH_SIZE);
-		}
+		memcpy(tmp2,h2,HASH_SIZE);
+		tth_t_calc_hash(h2,h2,HASH_SIZE);
 		if(tth_t_compare(h1,h2) == 0){
 			tth_t_print_message(tmp1,HASH_SIZE,"m1");
 			tth_t_print_message(tmp2,HASH_SIZE,"m2");
 			tth_t_print_message(h2,HASH_SIZE,"h2");
 			tth_t_print_message(h1,HASH_SIZE,"h1");
-			found++;
-			if(found == 1)
-				tth_t_calc_hash(h1,message,MESSAGE_SIZE);
+			found = 1;
 		}
 	}
+	tth_t_calc_hash(h1,message,MESSAGE_SIZE);
+	while(tth_t_compare(h1,h2) != 0){
+		usleep(10);
+		memcpy(tmp1,h1,HASH_SIZE);
+		tth_t_calc_hash(h1,h1,HASH_SIZE);
+		memcpy(tmp2,h2,HASH_SIZE);
+		tth_t_calc_hash(h2,h2,HASH_SIZE);
+	}
+	tth_t_print_message(tmp1,HASH_SIZE,"m1");
+	tth_t_print_message(tmp2,HASH_SIZE,"m2");
+	tth_t_print_message(h2,HASH_SIZE,"h2");
+	tth_t_print_message(h1,HASH_SIZE,"h1");
 	return number_iterations;
 }
 

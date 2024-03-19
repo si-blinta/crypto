@@ -9,7 +9,7 @@
 #define BLOCK_SIZE 25
 #define HASH_SIZE 5
 #define DEBUG 0
-#define MESSAGE_SIZE 10
+#define MESSAGE_SIZE 100
 /**
 *@brief This function simply Pads a message.
 *			This function must be called only after checking that the padding is needed.
@@ -62,7 +62,14 @@ void tth_t_right_shift_blocks(uint8_t** blocks, size_t size);
 */
 void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length);
 
-
+/**
+ * @brief Floyd collision detection algorithm
+*/
 int floyd_collision();
 
+/**
+ * 
+ * 
+*/
+uint8_t** 
 #endif //TTH_H
