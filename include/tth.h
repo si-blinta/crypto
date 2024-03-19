@@ -8,8 +8,8 @@
 #include <time.h>
 #define BLOCK_SIZE 25
 #define HASH_SIZE 5
-#define DEBUG 1
-#define MESSAGE_SIZE 5000
+#define DEBUG 0
+#define MESSAGE_SIZE 1500
 /**
 *@brief This function simply Pads a message.
 *			This function must be called only after checking that the padding is needed.

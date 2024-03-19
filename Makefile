@@ -1,16 +1,19 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11
-SRC = main.c tth.c
-OBJ = $(SRC:.c=.o)
-EXECUTABLE = main
 
-all: $(EXECUTABLE)
+all: bin/main
 
-$(EXECUTABLE): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $@
+bin/main: obj/main.o obj/tth.o
+	$(CC) $(CFLAGS) $^ -o $@
 
-%.o: %.c tth.h
-	$(CC) $(CFLAGS) -c $< -o $@
+obj/main.o: src/main.c include/tth.h | obj
+	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
+
+obj/tth.o: src/tth.c include/tth.h | obj
+	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
+
+obj:
+	mkdir -p obj bin
 
 clean:
-	rm -f $(EXECUTABLE) $(OBJ)
+	rm -rf obj bin
