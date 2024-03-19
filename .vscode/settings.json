@@ -3,6 +3,8 @@
         "tth.h": "c",
         "stdint.h": "c",
         "stdio.h": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "utils.h": "c",
+        "system_error": "c"
     }
 }

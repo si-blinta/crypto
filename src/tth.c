@@ -15,19 +15,6 @@ uint8_t*  tth_t_padding(uint8_t* message, size_t message_length, size_t* padded_
 	*padded_length = message_length + values_missing;
 	return padded_message;
 }
-void tth_t_print_message(uint8_t* message,size_t message_length,char* info){
-	printf("---------------------message----------------------------\n");
-	printf("%s\n",info);
-	printf("[");
-	for(size_t i = 0; i < message_length; i++)
-#if HEXA
-	printf("%02x ",message[i]);
-#else
-	printf("%u ",message[i]);
-#endif//HEXA
-	printf("]\n");
-
-}
 uint8_t** tth_t_generate_blocks(uint8_t* padded_message,size_t padded_length){
 	size_t number_of_blocks = padded_length / BLOCK_SIZE;
 	uint8_t** blocks = malloc(number_of_blocks*sizeof(uint8_t*));
@@ -44,38 +31,6 @@ uint8_t** tth_t_generate_blocks(uint8_t* padded_message,size_t padded_length){
 		memcpy(blocks[i],padded_message+i*BLOCK_SIZE,BLOCK_SIZE);
 	}
 	return blocks;
-}
-void tth_t_print_blocks(uint8_t** blocks, size_t blocks_size){	
-	printf("---------------------BLOCKS----------------------------\n");
-	for(size_t i = 0; i < blocks_size/BLOCK_SIZE; i++){
-		printf("---block#%ld----\n[",i);
-		for(size_t j =0;j<BLOCK_SIZE;j++){
-			if(j%HASH_SIZE == 0)printf("\n");
-#if HEXA
-			printf("%02x ",blocks[i][j]);
-#else
-			printf("%u ",blocks[i][j]);
-#endif //HEXA			
-		}
-		printf("\n]\n");
-		printf("--------------\n");
-	}	
-}
-void tth_t_print_data_blocks(uint8_t** blocks, size_t blocks_size){	
-	printf("------------------DATA BLOCKS-----------------------\n");
-	for(size_t i = 0; i < blocks_size; i++){
-		printf("---block#%ld----\n[",i);
-		for(size_t j =0;j<BLOCK_SIZE;j++){
-			if(j%HASH_SIZE == 0)printf("\n");
-#if HEXA
-			printf("%02x ",blocks[i][j]);
-#else
-			printf("%u ",blocks[i][j]);
-#endif //HEXA			
-		}
-		printf("\n]\n");
-		printf("--------------\n");
-	}	
 }
 uint8_t* tth_t_calc_empreinte_block(uint8_t * block){
 	uint8_t* empreinte = malloc(HASH_SIZE);
@@ -140,7 +95,7 @@ void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length){
 		}
 		free(tmp_empreinte);
 #if DEBUG
-		tth_t_print_message(hash,HASH_SIZE,"empreinte");
+		print_hash(hash,HASH_SIZE,"empreinte");
 #endif //DEBUG
 		right_shift_block(blocks[i]);
 		tmp_empreinte = tth_t_calc_empreinte_block(blocks[i]);
@@ -150,11 +105,11 @@ void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length){
 		}
 		free(tmp_empreinte);
 #if DEBUG
-		tth_t_print_message(hash,HASH_SIZE,"empreinte");
+		print_hash(hash,HASH_SIZE,"empreinte");
 #endif //DEBUG
 	}
 #if DEBUG
-		tth_t_print_message(hash,HASH_SIZE,"empreinte_final");
+		print_hash(hash,HASH_SIZE,"empreinte_final");
 #endif //DEBUG
 	free(padded_message);
 	for(size_t i = 0; i <padded_length / BLOCK_SIZE; i ++)free(blocks[i]);
@@ -168,7 +123,7 @@ int floyd_collision(){ //TODO
 		return -1;
 	}
 	for(size_t i = 0; i < MESSAGE_SIZE ;i++)message[i] = rand() % 64;
-	tth_t_print_message(message,MESSAGE_SIZE,"message");
+	print_hash(message,MESSAGE_SIZE,"message");
 	int found = 0;
 	uint8_t h1[HASH_SIZE],h2[HASH_SIZE];
 	tth_t_calc_hash(h1,message,MESSAGE_SIZE);
@@ -184,10 +139,10 @@ int floyd_collision(){ //TODO
 		memcpy(tmp2,h2,HASH_SIZE);
 		tth_t_calc_hash(h2,h2,HASH_SIZE);
 		if(tth_t_compare(h1,h2) == 0){
-			tth_t_print_message(tmp1,HASH_SIZE,"m1");
-			tth_t_print_message(tmp2,HASH_SIZE,"m2");
-			tth_t_print_message(h2,HASH_SIZE,"h2");
-			tth_t_print_message(h1,HASH_SIZE,"h1");
+			print_hash(tmp1,HASH_SIZE,"m1");
+			print_hash(tmp2,HASH_SIZE,"m2");
+			print_hash(h2,HASH_SIZE,"h2");
+			print_hash(h1,HASH_SIZE,"h1");
 			found = 1;
 		}
 	}
@@ -199,50 +154,11 @@ int floyd_collision(){ //TODO
 		memcpy(tmp2,h2,HASH_SIZE);
 		tth_t_calc_hash(h2,h2,HASH_SIZE);
 	}
-	tth_t_print_message(tmp1,HASH_SIZE,"m1");
-	tth_t_print_message(tmp2,HASH_SIZE,"m2");
-	tth_t_print_message(h2,HASH_SIZE,"h2");
-	tth_t_print_message(h1,HASH_SIZE,"h1");
+	print_hash(tmp1,HASH_SIZE,"m1");
+	print_hash(tmp2,HASH_SIZE,"m2");
+	print_hash(h2,HASH_SIZE,"h2");
+	print_hash(h1,HASH_SIZE,"h1");
 	return number_iterations;
-}
-uint8_t** generate_blocks_from_file(char* filename,size_t* number_blocks){
-	FILE* file = fopen(filename,"rb");
-	if(file == NULL){
-		perror("[generate_blocks_from_file][fopen]");
-		return NULL;
-	}
-	struct stat st;
-	stat(filename, &st);
-	size_t size = st.st_size;
-	size_t remaining = size % DATA_BLOCK_SIZE;
-	if(remaining != 0){
-		size+=DATA_BLOCK_SIZE-remaining;//Padding
-	}
-	*number_blocks = size / DATA_BLOCK_SIZE;
-	uint8_t** data_blocks = malloc(*number_blocks * sizeof(uint8_t*));
-	if(data_blocks == NULL){
-		perror("[generate_blocks_from_file][first malloc]");
-		return NULL;
-	} 
-	for(size_t i = 0; i < *number_blocks; i++){
-		data_blocks[i] = malloc(DATA_BLOCK_SIZE);
-		if(data_blocks[i] == NULL){
-			perror("[generate_blocks_from_file][second malloc]");
-			return NULL;
-		}
-		memset(data_blocks[i],0,DATA_BLOCK_SIZE);
-	}
-	for(size_t i = 0; i < *number_blocks; i++){
-		size_t bytes_read = fread(data_blocks[i],1,DATA_BLOCK_SIZE,file);
-		if(bytes_read < DATA_BLOCK_SIZE){
-			data_blocks[i][bytes_read] = 32; 
-		}
-		for(size_t j = 0 ; j < DATA_BLOCK_SIZE ; j++)data_blocks[i][j]%=64;
-
-	}
-	fclose(file);
-	return data_blocks;
-
 }
 
 

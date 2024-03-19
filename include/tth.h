@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/stat.h>
+#include "utils.h"
 #define BLOCK_SIZE 25
 #define HASH_SIZE 5
 #define DATA_BLOCK_SIZE 512
@@ -23,28 +24,19 @@
 */
 uint8_t*  tth_t_padding(uint8_t* message, size_t message_length,size_t* padded_length);
 
-/**
-*@brief This function prints the message
-*
-*/
-void tth_t_print_message(uint8_t* message,size_t message_length,char* info);
 
 /**
 *@brief This function generates matrices : an array of blocks ( a block is an array of size 25)
 *@param padded_message : The padded_message 
 *@param padded_length  : The size of the padded message
-*@return : Returns a dynamically allocated matrices
+*@return : Returns a dynamically allocated matrices.YOU MUST FREE
 */
 uint8_t** tth_t_generate_blocks(uint8_t* padded_message,size_t padded_length);
-/**
-*@brief This function prints blocks.
-*/
-void tth_t_print_blocks(uint8_t** blocks, size_t total_size);
 
 /**
 *@brief This function calculates an empreinte for a given block
 *@param block : The block to operate on
-*@return : Returns a dynamically allocated empreinte.
+*@return : Returns a dynamically allocated empreinte.YOU MUST FREE
 */
 uint8_t* tth_t_calc_empreinte_block(uint8_t * block);
 
@@ -69,12 +61,4 @@ void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length);
  * @brief Floyd collision detection algorithm
 */
 int floyd_collision();
-
-/**
- * @brief This function reads a file and store it in a array of blocks of size 512.
- *        This function also make sure the values are between 0 and 63.
- * @param filename The name of the file to read from.
- * @return Returns an array of blocks of size 512. 
-*/
-uint8_t** generate_blocks_from_file(char* filename,size_t* number_blocks);
 #endif //TTH_H
