@@ -1,25 +1,15 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11
+CFLAGS = -Wall -std=c99
+
+OBJS = obj/main.o obj/tth.o obj/utils.o obj/merkle_tree.o
 
 all: bin/main
 
-bin/main: obj/main.o obj/tth.o obj/utils.o obj/merkle_tree.o
-	$(CC) $(CFLAGS) obj/main.o obj/tth.o obj/utils.o obj/merkle_tree.o -o bin/main
+bin/main: $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o bin/main
 
-obj/main.o: src/main.c include/tth.h | obj
-	$(CC) $(CFLAGS) -Iinclude -c src/main.c -o obj/main.o
-
-obj/tth.o: src/tth.c include/tth.h | obj
-	$(CC) $(CFLAGS) -Iinclude -c src/tth.c -o obj/tth.o
-
-obj/utils.o: src/utils.c include/utils.h | obj
-	$(CC) $(CFLAGS) -Iinclude -c src/utils.c -o obj/utils.o
-
-obj/merkle_tree.o: src/merkle_tree.c include/merkle_tree.h | obj
-	$(CC) $(CFLAGS) -Iinclude -c src/merkle_tree.c -o obj/merkle_tree.o
-
-obj:
-	mkdir -p obj bin
+obj/%.o: src/%.c include/tth.h include/merkle_tree.h include/utils.h
+	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
 clean:
-	rm -rf obj bin
+	rm -f obj/* bin/*
