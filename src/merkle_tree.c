@@ -60,7 +60,7 @@ void merkle_tree_print_tree(merkle_tree* tree){
 
 }*/
 
-merkle_tree* merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks ){
+/*merkle_tree* merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks ){
     if(nb_blocks == 1){
         merkle_tree* tree = merkle_tree_init();
         tth_t_calc_hash(tree->hash,data_blocks[0],DATA_BLOCK_SIZE);
@@ -76,8 +76,50 @@ merkle_tree* merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks ){
     memcpy(concat_hash+HASH_SIZE,tree->right->hash,HASH_SIZE);
     tth_t_calc_hash(tree->hash,concat_hash,HASH_SIZE*2);
     return tree;
-}
+}*/
 
+merkle_tree* merkle_tree_build(uint8_t** data_blocks, size_t nb_blocks) {
+    if (nb_blocks == 1) {
+        merkle_tree* tree = merkle_tree_init();
+        tth_t_calc_hash(tree->hash, data_blocks[0], DATA_BLOCK_SIZE);
+        return tree; 
+    }
+    
+    merkle_tree* tree = merkle_tree_init();
+    size_t left_blocks = nb_blocks / 2;
+    size_t right_blocks = nb_blocks - left_blocks;
+
+    // Handle odd number of blocks by duplicating the last block
+    if (nb_blocks % 2 != 0) {
+        // Duplicate the last block
+        uint8_t* duplicated_block = malloc(DATA_BLOCK_SIZE);
+        memcpy(duplicated_block, data_blocks[nb_blocks - 1], DATA_BLOCK_SIZE);
+        
+        // Build the left subtree with duplicated last block
+        tree->left = merkle_tree_build(data_blocks, left_blocks + 1);
+        
+        // Build the right subtree
+        tree->right = merkle_tree_build(data_blocks + left_blocks, right_blocks);
+        
+        // Calculate hash of concatenated hashes
+        uint8_t concat_hash[HASH_SIZE * 2];
+        memcpy(concat_hash, tree->left->hash, HASH_SIZE);
+        memcpy(concat_hash + HASH_SIZE, tree->right->hash, HASH_SIZE);
+        tth_t_calc_hash(tree->hash, concat_hash, HASH_SIZE * 2);
+        
+        free(duplicated_block); // Free the duplicated block memory
+    } else {
+        // Even number of blocks, proceed as before
+        tree->left = merkle_tree_build(data_blocks, left_blocks);
+        tree->right = merkle_tree_build(data_blocks + left_blocks, right_blocks);
+        uint8_t concat_hash[HASH_SIZE * 2];
+        memcpy(concat_hash, tree->left->hash, HASH_SIZE);
+        memcpy(concat_hash + HASH_SIZE, tree->right->hash, HASH_SIZE);
+        tth_t_calc_hash(tree->hash, concat_hash, HASH_SIZE * 2);
+    }
+    
+    return tree;
+}
 
 
 
