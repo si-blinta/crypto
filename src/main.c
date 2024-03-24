@@ -13,3 +13,4 @@ int main(){
 	print_hash(m,HASH_SIZE,"hash");*/
 	return 0;
 }
+// 32 32 0 0 0 LOOP
