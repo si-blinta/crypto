@@ -11,9 +11,9 @@
 #define BLOCK_SIZE 25
 #define HASH_SIZE 5
 #define DATA_BLOCK_SIZE 512
-#define DEBUG 0
+#define DEBUG 1
 #define MESSAGE_SIZE 100
-#define HEXA 1
+#define HEXA 0
 /**
 *@brief This function simply Pads a message.
 *			This function must be called only after checking that the padding is needed.

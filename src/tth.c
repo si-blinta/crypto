@@ -2,6 +2,7 @@
 
 uint8_t*  tth_t_padding(uint8_t* message, size_t message_length, size_t* padded_length){
 	size_t values_missing = BLOCK_SIZE - ( message_length % BLOCK_SIZE ) ;
+	*padded_length = message_length + values_missing;
 	uint8_t* padded_message = malloc ( message_length + values_missing  );
 	if(padded_message == NULL ){
 		perror("[tth_t_padding][malloc]");
@@ -11,8 +12,13 @@ uint8_t*  tth_t_padding(uint8_t* message, size_t message_length, size_t* padded_
 	memcpy(padded_message,message,message_length);
 	offset += message_length;
 	padded_message[offset++] = 32;
-	memset(padded_message+offset,0, offset - message_length - sizeof(uint8_t) ) ;
-	*padded_length = message_length + values_missing;
+	memset(padded_message+offset,0, *padded_length-offset ) ;
+#if DEBUG
+	print_hash(padded_message,*padded_length,"padding");
+	printf("added : %d\n",message_length + values_missing);
+
+#endif//DEBUG
+	
 	return padded_message;
 }
 uint8_t** tth_t_generate_blocks(uint8_t* padded_message,size_t padded_length){
@@ -115,7 +121,13 @@ void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length){
 	for(size_t i = 0; i <padded_length / BLOCK_SIZE; i ++)free(blocks[i]);
 	free(blocks);
 }
+int floyd_collision(){
 
+
+
+
+	
+}
 
 
 
