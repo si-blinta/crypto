@@ -25,10 +25,6 @@ void merkle_tree_print_node(merkle_tree* node);
 */
 void merkle_tree_print_tree(merkle_tree* tree);
 
-/**
- * @brief This function builds a merkle tree from data blocks
-*/
-merkle_tree* merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks);
 
 
 
