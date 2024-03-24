@@ -5,6 +5,7 @@
         "stdio.h": "c",
         "stat.h": "c",
         "utils.h": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "merkle_tree.h": "c"
     }
 }

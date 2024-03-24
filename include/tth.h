@@ -60,5 +60,5 @@ void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length);
 /**
  * @brief Floyd collision detection algorithm
 */
-int floyd_collision();
+int floyd_collision(uint8_t* start_message,size_t message_length);
 #endif //TTH_H

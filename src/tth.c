@@ -1,9 +1,18 @@
 #include "tth.h"
 
 uint8_t*  tth_t_padding(uint8_t* message, size_t message_length, size_t* padded_length){
+	uint8_t* padded_message;
+	if(message_length % BLOCK_SIZE == 0){
+		//No padding needed
+		*padded_length = message_length;
+		padded_message = malloc(message_length);
+		memcpy(padded_message,message,message_length);
+		return padded_message;
+	}
+
 	size_t values_missing = BLOCK_SIZE - ( message_length % BLOCK_SIZE ) ;
 	*padded_length = message_length + values_missing;
-	uint8_t* padded_message = malloc ( message_length + values_missing  );
+	padded_message = malloc ( message_length + values_missing  );
 	if(padded_message == NULL ){
 		perror("[tth_t_padding][malloc]");
 		return NULL;
@@ -13,12 +22,6 @@ uint8_t*  tth_t_padding(uint8_t* message, size_t message_length, size_t* padded_
 	offset += message_length;
 	padded_message[offset++] = 32;
 	memset(padded_message+offset,0, *padded_length-offset ) ;
-#if DEBUG
-	print_hash(padded_message,*padded_length,"padding");
-	printf("added : %d\n",message_length + values_missing);
-
-#endif//DEBUG
-	
 	return padded_message;
 }
 uint8_t** tth_t_generate_blocks(uint8_t* padded_message,size_t padded_length){
@@ -74,10 +77,12 @@ static void right_shift_block(uint8_t* block){
 }
 static int tth_t_compare(uint8_t* h1,uint8_t* h2){
 	for(size_t i = 0; i < HASH_SIZE ; i++){
-		if(h1[i] > h2[i] )
+		if(h1[i] > h2[i] ){
 			return 1;
-		else if(h1[i] < h2[i])
+		}
+		if(h1[i] < h2[i]){
 			return -1;
+		}
 	}
 	return 0;
 }
@@ -90,42 +95,78 @@ void tth_t_right_shift_blocks(uint8_t** blocks, size_t size){
 
 void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length){
 	size_t padded_length;
+	uint8_t* temp_hash = malloc(HASH_SIZE);	// work on a copy to allow this kind of calls calc_hash(hash,hash,HASH_SIZE)
+	memset(temp_hash,0,HASH_SIZE);// set to zero because we will increment the contents.
+	if(temp_hash == NULL){
+		perror("[tth_t_calc_hash][malloc]");
+		exit(1);
+	}
 	uint8_t * padded_message = tth_t_padding(message,message_length,&padded_length);
+#if DEBUG
+	print_hash(padded_message,padded_length,"padding");
+	
+#endif //DEBUG	
 	uint8_t ** blocks = tth_t_generate_blocks(padded_message,padded_length);
+#if DEBUG
+	print_blocks(blocks,BLOCK_SIZE,5,padded_length/BLOCK_SIZE,"BLOCKS");
+
+#endif //DEBUG
 	uint8_t* tmp_empreinte = NULL;
 	for(size_t i = 0; i < padded_length / BLOCK_SIZE; i++){
 		tmp_empreinte = tth_t_calc_empreinte_block(blocks[i]);
 		for(int i = 0;i<HASH_SIZE;i++){
-			hash[i]+=tmp_empreinte[i];
-			hash[i]%=64;
+			temp_hash[i]+=tmp_empreinte[i];
+			temp_hash[i]%=64;
 		}
 		free(tmp_empreinte);
 #if DEBUG
-		print_hash(hash,HASH_SIZE,"empreinte");
+		char log_message[100];
+		sprintf(log_message,"first empreinte %ld",i);
+		print_hash(temp_hash,HASH_SIZE,log_message);
 #endif //DEBUG
 		right_shift_block(blocks[i]);
 		tmp_empreinte = tth_t_calc_empreinte_block(blocks[i]);
 		for(int i = 0;i<HASH_SIZE;i++){
-			hash[i]+=tmp_empreinte[i];
-			hash[i]%=64;
+			temp_hash[i]+=tmp_empreinte[i];
+			temp_hash[i]%=64;
 		}
 		free(tmp_empreinte);
 #if DEBUG
-		print_hash(hash,HASH_SIZE,"empreinte");
+		sprintf(log_message,"second empreinte (after shift) %ld",i);
+		print_hash(temp_hash,HASH_SIZE,log_message);
 #endif //DEBUG
 	}
 #if DEBUG
-		print_hash(hash,HASH_SIZE,"empreinte_final");
+		print_hash(temp_hash,HASH_SIZE,"empreinte_final");
 #endif //DEBUG
 	free(padded_message);
+	memcpy(hash,temp_hash,HASH_SIZE);
+	free(temp_hash);
 	for(size_t i = 0; i <padded_length / BLOCK_SIZE; i ++)free(blocks[i]);
 	free(blocks);
 }
-int floyd_collision(){
 
 
 
+int floyd_collision(uint8_t* start_message,size_t message_length){
+	uint8_t h1[HASH_SIZE],h2[HASH_SIZE];
 
+	tth_t_calc_hash(h2,start_message,message_length);
+	tth_t_calc_hash(h2,h2,HASH_SIZE);
+	tth_t_calc_hash(h1,start_message,message_length);
+	while(1){
+		tth_t_calc_hash(h1,h1,HASH_SIZE);
+		tth_t_calc_hash(h2,h2,HASH_SIZE);
+		print_hash(h1,HASH_SIZE,"h1");
+		print_hash(h2,HASH_SIZE,"h2");
+
+		if( tth_t_compare(h1,h2) == 0){	
+			print_hash(h1,HASH_SIZE,"h1");
+			print_hash(h2,HASH_SIZE,"h2");
+			break;
+		}
+	}
+	return 0;
 	
 }
 

@@ -50,7 +50,7 @@ void print_hash(uint8_t* message,size_t message_length,char* log_message){
 #endif//HEXA
 	printf("]\n");
 	printf("--------------------------------------\n");
-
+	
 }
 void print_blocks(uint8_t** blocks, size_t size_of_a_block,size_t values_per_line,size_t nb_blocks, char* log_message){	
 	printf("---------------------%s----------------------------\n",log_message);
