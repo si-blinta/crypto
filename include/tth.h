@@ -11,7 +11,7 @@
 #define BLOCK_SIZE 25
 #define HASH_SIZE 5
 #define DATA_BLOCK_SIZE 512
-#define DEBUG 1
+#define DEBUG 0
 #define MESSAGE_SIZE 100
 #define HEXA 0
 /**
