@@ -150,19 +150,19 @@ void tth_t_calc_hash(uint8_t* hash,uint8_t* message, size_t message_length){
 
 int floyd_collision(uint8_t* start_message,size_t message_length){
 	uint8_t h1[HASH_SIZE],h2[HASH_SIZE];
-
+	int iterations = 0;
 	tth_t_calc_hash(h2,start_message,message_length);
 	tth_t_calc_hash(h2,h2,HASH_SIZE);
 	tth_t_calc_hash(h1,start_message,message_length);
 	while(1){
+		iterations++;
 		tth_t_calc_hash(h1,h1,HASH_SIZE);
 		tth_t_calc_hash(h2,h2,HASH_SIZE);
 		print_hash(h1,HASH_SIZE,"h1");
 		print_hash(h2,HASH_SIZE,"h2");
-
+		
 		if( tth_t_compare(h1,h2) == 0){	
-			print_hash(h1,HASH_SIZE,"h1");
-			print_hash(h2,HASH_SIZE,"h2");
+			printf("iterations %d\n",iterations);
 			break;
 		}
 	}
