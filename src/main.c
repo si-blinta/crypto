@@ -6,18 +6,37 @@ int main(){
 	uint8_t** data_blocks = exctract_blocks_from_file("s.png",&number_blocks);
 	if(data_blocks == NULL)
 		return 0;
-	print_blocks(data_blocks,DATA_BLOCK_SIZE,50,number_blocks,"blocks");
-	//floyd_collision(data_blocks[3],number_blocks);
-	uint8_t m1[]={32,32,0,0,0};
-	print_hash(m1,HASH_SIZE,"m1");
-	tth_t_calc_hash(m1,m1,HASH_SIZE);
-	print_hash(m1,HASH_SIZE,"hash of m1");
-	uint8_t m2[]={32,0,32,0,0};
-	print_hash(m2,HASH_SIZE,"m2");
-	tth_t_calc_hash(m2,m2,HASH_SIZE);
-	print_hash(m2,HASH_SIZE,"hash of m2");
+	
+	/*uint8_t tab[3][4][5];
+	//first hash
+	for ( size_t i = 0 ; i < 4 ; i++){
+	
+		tth_t_calc_hash(tab[0][i],data_blocks[i],DATA_BLOCK_SIZE);
+		print_hash(tab[0][i],HASH_SIZE,"height 0");
+	}
+	//Second hash
+	for ( size_t i = 0 ; i < 2 ; i++){
+	
+		uint8_t concat1[HASH_SIZE*2];
+		memcpy(concat1,tab[0][i],HASH_SIZE);
+		memcpy(concat1+HASH_SIZE,tab[0][i+1],HASH_SIZE);
+		print_hash(concat1,HASH_SIZE*2,"concat1");
+		
+		tth_t_calc_hash(tab[1][i],concat1,HASH_SIZE*2);
+		print_hash(tab[1][i],HASH_SIZE,"height 1");
+		
+	}
+	//Final hash
+		uint8_t concat1[HASH_SIZE*2];
+		memcpy(concat1,tab[1][0],HASH_SIZE);
+		memcpy(concat1+HASH_SIZE,tab[1][1],HASH_SIZE);
+		print_hash(concat1,HASH_SIZE*2,"concat2");
+		
+		tth_t_calc_hash(tab[2][0],concat1,HASH_SIZE*2);
+		print_hash(tab[2][0],HASH_SIZE,"height 2");*/
+		uint8_t *** t = merkle_tree_build(data_blocks,number_blocks);
+	
+	
+	
 	return 0;
 }
-// 32 32 0 0 0 LOOP
-//m1 = 32 0 32 0 0 
-//m2 = 32 32 0 0 0
