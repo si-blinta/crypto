@@ -54,13 +54,13 @@ void print_hash(uint8_t* message,size_t message_length,char* log_message){
 void print_blocks(uint8_t** blocks, size_t size_of_a_block,size_t values_per_line,size_t nb_blocks, char* log_message){	
 	printf("---------------------%s----------------------------\n",log_message);
 	for(size_t i = 0; i < nb_blocks; i++){
-		printf("---%s#%ld----\n[",log_message,i);
+		printf(ANSI_COLOR_RED"---%s#%ld----\n[",log_message,i);
 		for(size_t j =0;j<size_of_a_block;j++){
 			if(j%values_per_line == 0)printf("\n");
 #if HEXA
-			printf("%02x ",blocks[i][j]);
+			printf(ANSI_COLOR_RESET"%02x ",blocks[i][j]);
 #else
-			printf("%u ",blocks[i][j]);
+			printf(ANSI_COLOR_RESET"%u ",blocks[i][j]);
 #endif //HEXA			
 		}
 		printf("\n]\n");

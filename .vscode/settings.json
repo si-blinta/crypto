@@ -6,6 +6,12 @@
         "stat.h": "c",
         "utils.h": "c",
         "system_error": "c",
-        "merkle_tree.h": "c"
+        "merkle_tree.h": "c",
+        "array": "c",
+        "compare": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c"
     }
 }

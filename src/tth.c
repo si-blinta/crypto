@@ -75,7 +75,7 @@ static void right_shift_block(uint8_t* block){
 		free(temp);
 	}
 }
-static int tth_t_compare(uint8_t* h1,uint8_t* h2){
+int tth_t_compare(uint8_t* h1,uint8_t* h2){
 	for(size_t i = 0; i < HASH_SIZE ; i++){
 		if(h1[i] > h2[i] ){
 			return 1;
@@ -198,7 +198,6 @@ static void right_shift_block(uint8_t* block);
 *@param h2 hash
 *@return 0 if equal , 1 if h1 greater and -1 if h2 greater
 */
-static int tth_t_compare(uint8_t* h1,uint8_t* h2);
 
 
 
