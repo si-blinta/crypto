@@ -3,10 +3,9 @@
 #include "merkle_tree.h"
 int main(){
 	size_t number_blocks;
-	uint8_t** data_blocks = exctract_blocks_from_file("s.png",&number_blocks);
+	uint8_t** data_blocks = exctract_blocks_from_file("x.png",&number_blocks);
 	if(data_blocks == NULL)
 		return 0;
-	
 	/*uint8_t tab[3][4][5];
 	//first hash
 	for ( size_t i = 0 ; i < 4 ; i++){

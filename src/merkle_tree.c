@@ -70,7 +70,7 @@ void merkle_tree_print_tree(merkle_tree* tree){
  * 
 */
 uint8_t*** merkle_tree_build(uint8_t** data_blocks,uint32_t nb_blocks){
-    uint32_t depth = (uint32_t) ceil(log2(nb_blocks)) + 1  ;
+    uint32_t depth = (uint32_t) ceil(log2(nb_blocks))   ;
     uint32_t nodes_per_level = nb_blocks;
 #if DEBUG
     printf("blocks = %u depth = %u\n",nb_blocks,depth);
@@ -101,7 +101,18 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,uint32_t nb_blocks){
                 tth_t_calc_hash(hash,data_blocks[j-1],DATA_BLOCK_SIZE);
             else
                 tth_t_calc_hash(hash,data_blocks[j],DATA_BLOCK_SIZE);
-            memcpy(merkle_array[i][j], hash,HASH_SIZE);       
+            memcpy(merkle_array[i][j], hash,HASH_SIZE);  
+            if(i == 0 ){
+                if(j == nb_blocks){
+                     printf(ANSI_COLOR_RED"\n--------DATA BLOCK %ld--------\n",j);
+                    print_hash(data_blocks[j-1],DATA_BLOCK_SIZE,ANSI_COLOR_RESET); 
+                }
+                else{
+                    printf(ANSI_COLOR_RED"\n--------DATA BLOCK %ld--------\n",j);
+                    print_hash(data_blocks[j],DATA_BLOCK_SIZE,ANSI_COLOR_RESET);     
+                }
+
+            }
         }
         nodes_per_level= nodes_per_level/2;
     }
@@ -112,29 +123,57 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,uint32_t nb_blocks){
     for(size_t i = 1; i < depth-1; i++){
         nodes_per_level = nodes_per_level/2;
         size_t index = 0;
-        if(nodes_per_level % 2 !=0)
+        int duplicate = 0;
+        if(nodes_per_level % 2 !=0){
             nodes_per_level++;
+            duplicate = 1;
+        }
         for(size_t j = 0; j < nodes_per_level; j++){
             uint8_t concat[HASH_SIZE*2];
             uint8_t hash[HASH_SIZE];
-            printf("concatenating [%d][%d] + [%d][%d] => [%d][%d]\n",i-1,j,i-1,j+1,i,index);
-		    memcpy(concat,merkle_array[i-1][j],HASH_SIZE);
+            printf(ANSI_COLOR_RED"\n----------LEVEL %ld------------\n",i);
+            printf(ANSI_COLOR_RESET"[%ld][%ld] + [%ld][%ld] => [%ld][%ld]\n",i-1,j,i-1,j+1,i,index);
+		    
+            print_hash(merkle_array[i-1][j],HASH_SIZE,ANSI_COLOR_CYAN);
+            printf(ANSI_COLOR_RESET"       +");
+            print_hash(merkle_array[i-1][j+1],HASH_SIZE,ANSI_COLOR_CYAN);
+            printf(ANSI_COLOR_RESET"       =");
+            
+            memcpy(concat,merkle_array[i-1][j],HASH_SIZE);
 		    memcpy(concat+HASH_SIZE,merkle_array[i-1][j+1],HASH_SIZE);
-            print_hash(concat,HASH_SIZE*2,"concat");
+            
+            print_hash(concat,HASH_SIZE*2,ANSI_COLOR_BLUE);
             tth_t_calc_hash(hash,concat,HASH_SIZE*2);
             memcpy(merkle_array[i][index],hash,HASH_SIZE);
+            
+            printf(ANSI_COLOR_RESET"HASHED :");
+            print_hash(hash,HASH_SIZE,ANSI_COLOR_GREEN);
             j++;
             index++;
         }
     }
+    /*
     //last concat
-    printf("concatenating[%d][%d] + [%d][%d] => [%d][%d]\n",depth-2,0,depth-2,1,depth-1,0);
+    printf(ANSI_COLOR_RED"\n----------ROOT------------\n");
+    printf(ANSI_COLOR_RESET"[%d][%d] + [%d][%d] => [%d][%d]\n",depth-2,0,depth-2,1,depth-1,0);
+    
+    
     uint8_t concat[HASH_SIZE*2];
     uint8_t hash[HASH_SIZE];
+    print_hash(merkle_array[depth-2][0],HASH_SIZE,ANSI_COLOR_CYAN);
+    printf(ANSI_COLOR_RESET"       +");
+    print_hash(merkle_array[depth-2][1],HASH_SIZE,ANSI_COLOR_CYAN);
+    printf(ANSI_COLOR_RESET"       =");
+    
     memcpy(concat,merkle_array[depth-2][0],HASH_SIZE);
 	memcpy(concat+HASH_SIZE,merkle_array[depth-2][1],HASH_SIZE);
+    print_hash(concat,HASH_SIZE*2,ANSI_COLOR_BLUE);
+
     tth_t_calc_hash(hash,concat,HASH_SIZE*2);
     memcpy(merkle_array[depth-1][0],hash,HASH_SIZE);
+
+    printf(ANSI_COLOR_RESET"HASHED :");
+    print_hash(hash,HASH_SIZE,ANSI_COLOR_GREEN);*/
     return merkle_array;
 }
 
