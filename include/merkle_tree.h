@@ -6,9 +6,9 @@
 #define TEST 1
 #define PRINT_HASH_PAIR(i, guard) \
     do { \
-        print_hash(merkle_array[i-1][guard], HASH_SIZE, ANSI_COLOR_CYAN); \
+        print_hash(tree[i-1][guard], HASH_SIZE, ANSI_COLOR_CYAN); \
         printf(ANSI_COLOR_RESET "       +"); \
-        print_hash(merkle_array[i-1][guard+1], HASH_SIZE, ANSI_COLOR_CYAN); \
+        print_hash(tree[i-1][guard+1], HASH_SIZE, ANSI_COLOR_CYAN); \
         printf(ANSI_COLOR_RESET "       ="); \
     } while(0)
 #define PRINT_LEVEL_INFO(i,index,guard,nodes_per_level,type) \
@@ -66,9 +66,9 @@ void merkle_tree_print_node(merkle_tree* node);
 void merkle_tree_print_tree(merkle_tree* tree);
 
 uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks);
-void merkle_tree_print(uint8_t*** merkle_array,size_t nb_blocks);
-int merkle_tree_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** merkle_array,size_t nb_blocks);
-
+void merkle_tree_print(uint8_t*** tree,size_t nb_blocks);
+int merkle_tree_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tree,size_t nb_blocks);
+size_t merkle_tree_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks);
 
 
 

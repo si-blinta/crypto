@@ -94,7 +94,13 @@ void proof_collision(){
 int main(){
     //test1();
 #if MODIFIED
-    test2();
+    //test2();
+    size_t nb_blocks = 0;  
+    uint8_t** data_blocks = exctract_blocks_from_file("src/utils.c",&nb_blocks);
+    uint8_t*** auth = merkle_tree_build(data_blocks,nb_blocks);
+    data_blocks[3][0]=0;
+    uint8_t*** check = merkle_tree_build(data_blocks,nb_blocks);
+    merkle_tree_find_corrupt_data(auth,check,nb_blocks);
 #else
     proof_collision();
 #endif

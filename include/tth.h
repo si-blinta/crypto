@@ -13,7 +13,7 @@
 #define DATA_BLOCK_SIZE 512
 #define DEBUG 0
 #define HEXA 1
-#define MODIFIED 0
+#define MODIFIED 1
 /**
 *@brief This function simply Pads a message.
 *			This function must be called only after checking that the padding is needed.
