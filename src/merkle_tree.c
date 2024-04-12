@@ -28,6 +28,7 @@ void merkle_tree_print_tree(merkle_tree* tree){
     }
 }
 uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
+    assert(data_blocks != NULL && nb_blocks > 1);
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
     size_t nodes_per_level = nb_blocks;
     uint8_t concat[HASH_SIZE*2];
@@ -38,6 +39,11 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
         perror("[merkle_tree_build][malloc]");
         exit(EXIT_FAILURE);
     }
+    printf(ANSI_COLOR_RED"\n############# DATA BLOCKS TOTAL = %ld##################\n",nb_blocks);
+#if TEST
+    getc(stdin); 
+#endif
+    
     for(size_t i = 0 ; i < depth ; i++){
         if(nodes_per_level % 2 != 0 && i != depth -1)
             nodes_per_level++;
@@ -48,7 +54,6 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
             exit(EXIT_FAILURE);
         }
         for(size_t j = 0 ; j < nodes_per_level; j++){
-
             merkle_array[i][j] = malloc(5 * sizeof (uint8_t));
             if(merkle_array[i][j] == NULL){
                 perror("[merkle_tree_build][malloc]");
@@ -56,7 +61,10 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
             }
             if(i == 0 ){
                 if(j != nb_blocks){
-                    
+#if TEST
+                    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+                    getc(stdin);       
+#endif //TEST
                     printf(ANSI_COLOR_RED"\n--------DATA BLOCK %ld--------\n",j);
                     print_hash(data_blocks[j],DATA_BLOCK_SIZE,ANSI_COLOR_RESET); 
                 }
@@ -75,6 +83,10 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
             duplicate = 1;
         }
         while(index < nodes_per_level){
+#if TEST
+                    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+                    getc(stdin);       
+#endif //TEST
             if(i == 0){                                                         // If first level , then just hash the data.
                 if((index == nodes_per_level-1) && duplicate)                   // If its last block , copy the content if the previous one.
                    memcpy(merkle_array[i][index], merkle_array[i][index-1],HASH_SIZE); 
@@ -115,7 +127,10 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
         }
     nodes_per_level = nodes_per_level/2;
     }
-    
+#if TEST
+    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+    getc(stdin);       
+#endif //TEST
     PRINT_LEVEL_INFO(depth,0,0,0,ROOT);
     PRINT_HASH_PAIR(depth-1,0);
     
@@ -178,12 +193,15 @@ void merkle_tree_print(uint8_t*** merkle_array,size_t nb_blocks){
     print_hash(concat,HASH_SIZE*2,ANSI_COLOR_BLUE);
     print_hash(merkle_array[depth-1][0],HASH_SIZE,ANSI_COLOR_GREEN);
 }
-int merkle_tree_proof(size_t data_index,uint8_t*** merkle_array,size_t nb_blocks){
+int merkle_tree_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** merkle_array,size_t nb_blocks){
     if(data_index > nb_blocks){
         printf("\n"ANSI_COLOR_RED"[merkle_tree_proof][input_error] data block does not exist (usage : 0 <= data_index < nb_blocks)\n");
         exit(EXIT_FAILURE);
     }
-    printf(ANSI_COLOR_YELLOW"GENERATING MERKLE PROOF FOR DATA #%ld\n",data_index);
+    printf(ANSI_COLOR_YELLOW"\nGENERATING MERKLE PROOF FOR DATA #%ld\n",data_index);
+#if TEST
+                    getc(stdin);       
+#endif //TEST
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
     uint8_t merkle_root_hash[HASH_SIZE];
     uint8_t concat[HASH_SIZE*2];
@@ -191,9 +209,16 @@ int merkle_tree_proof(size_t data_index,uint8_t*** merkle_array,size_t nb_blocks
     size_t current_index = data_index;
     uint8_t current_hash[HASH_SIZE];
     memcpy(merkle_root_hash,merkle_array[depth-1][0],HASH_SIZE);                //Save the starting merkle root hash
-    print_hash(merkle_root_hash,HASH_SIZE,ANSI_COLOR_YELLOW"VALID MERKLE ROOT");
-    // ADD THE DATA => FIRST HASH PROCEDURE.
+    print_hash(merkle_root_hash,HASH_SIZE,ANSI_COLOR_RESET"\nVALID MERKLE ROOT\n");
+    // Update the hash of the data (level 0)
+    tth_t_calc_hash(current_hash,data_block,DATA_BLOCK_SIZE);
+    memcpy(merkle_array[0][data_index],current_hash,HASH_SIZE);
+
     while(current_level < depth-1){
+#if TEST
+                    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+                    getc(stdin);       
+#endif //TEST
         printf(ANSI_COLOR_RED"-----[%ld][%ld]-----\n",current_level+1,current_index/2);
         if(current_index %2 == 0){                                               //if index is pair : concatenate index.index+1
             memcpy(concat,merkle_array[current_level][current_index],HASH_SIZE);
@@ -214,6 +239,10 @@ int merkle_tree_proof(size_t data_index,uint8_t*** merkle_array,size_t nb_blocks
         current_level++;
         current_index/=2;
     }
+#if TEST
+                    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+                    getc(stdin);       
+#endif //TEST   
     printf(ANSI_COLOR_RESET"\n################################\n");
     print_hash(merkle_root_hash,HASH_SIZE,ANSI_COLOR_YELLOW"VALID MERKLE ROOT");
     print_hash(current_hash,HASH_SIZE,ANSI_COLOR_RESET"MERKLE ROOT FOUND");

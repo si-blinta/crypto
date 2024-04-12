@@ -2,6 +2,8 @@
 #define MERKLE_TREE_H
 #include "tth.h"
 #include <math.h>
+#include <assert.h>
+#define TEST 1
 #define PRINT_HASH_PAIR(i, guard) \
     do { \
         print_hash(merkle_array[i-1][guard], HASH_SIZE, ANSI_COLOR_CYAN); \
@@ -65,37 +67,9 @@ void merkle_tree_print_tree(merkle_tree* tree);
 
 uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks);
 void merkle_tree_print(uint8_t*** merkle_array,size_t nb_blocks);
-int merkle_tree_proof(size_t data_index,uint8_t*** merkle_array,size_t nb_blocks);
+int merkle_tree_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** merkle_array,size_t nb_blocks);
 
 
 
 
 #endif // MERKLE_TREE_H
-/*
-s
-s
-s
-s
-s
-
-s
-s
-s
-ss
-s
-s
-s
-s
-s
-sfdsfdfsdfdfsdfdkofkofoksdfkosdkoffdskofsdkofdskdokskofdsfdssssssssssssssssssssssssssssssssssssssssssaaaaaaaaaaaaaaaaaaaaaaaaddddddddddddd
-saaaaaaaaaasaaadqsdssssssssssssssssssssssssssssssssssssssssdqsd
-saaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadqsdqsdqsdqssqdsqqqqqqqqqqqqqqqqqq
-saaaaaaaaaaaa
-s
-
-
-s
-s
-s
-s
-*/

@@ -70,7 +70,11 @@ static uint8_t* right_shift_circular(uint8_t* array,size_t size, uint8_t value )
 
 static void right_shift_block(uint8_t* block){
 	for(size_t i = 0 ; i < HASH_SIZE ; i ++){
+#if MODIFIED 
+		uint8_t* temp = right_shift_circular(block + HASH_SIZE*i,HASH_SIZE,i+1);
+#else
 		uint8_t* temp = right_shift_circular(block + HASH_SIZE*i,HASH_SIZE,i);
+#endif
 		memcpy(block + i*HASH_SIZE,temp,HASH_SIZE);
 		free(temp);
 	}
