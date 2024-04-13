@@ -95,18 +95,26 @@ int main(){
     //test1();
 #if MODIFIED
     //test2();
+    size_t nb_blocks = 0;  
+    uint8_t** data_blocks = exctract_blocks_from_file("src/merkle_tree.c",&nb_blocks);
+    uint8_t*** auth = mt_build(data_blocks,nb_blocks);
+    data_blocks[10][0]=0;
+    uint8_t*** check = mt_build(data_blocks,nb_blocks);
+    //mt_find_corrupt_data(auth,check,nb_blocks);
+    size_t corrupt_index = mt_integrity_check(auth,check,nb_blocks);
+   
+    if(corrupt_index != nb_blocks+1)
+        printf("REQUESTING DATA # %ld FROM SERVER\n",corrupt_index);
+    uint8_t* idx=mt_get_proof_of_inclusion(auth,nb_blocks,10);
+    size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
+    for(size_t i = 0; i < depth-1;i++)
+        printf("[%hhu]\n",idx[i]);
     /*size_t nb_blocks = 0;  
     uint8_t** data_blocks = exctract_blocks_from_file("src/utils.c",&nb_blocks);
     uint8_t*** auth = mt_build(data_blocks,nb_blocks);
     data_blocks[3][0]=0;
-    uint8_t*** check = mt_build(data_blocks,nb_blocks);
-    mt_find_corrupt_data(auth,check,nb_blocks);*/
-    size_t nb_blocks = 0;  
-    uint8_t** data_blocks = exctract_blocks_from_file("src/utils.c",&nb_blocks);
-    uint8_t*** auth = mt_build(data_blocks,nb_blocks);
-    data_blocks[3][0]=0;
     mt_proof(0, data_blocks[3],auth,nb_blocks);
-    mt_print(auth,nb_blocks);
+    mt_print(auth,nb_blocks);*/
 #else
     proof_collision();
 #endif

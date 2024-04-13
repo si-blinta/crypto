@@ -3,7 +3,7 @@
 #include "tth.h"
 #include <math.h>
 #include <assert.h>
-#define TEST 1
+#define TEST 0
 #define PRINT_HASH_PAIR(i, guard) \
     do { \
         print_hash(tree[i-1][guard], HASH_SIZE, ANSI_COLOR_CYAN); \
@@ -69,7 +69,7 @@ uint8_t*** mt_build(uint8_t** data_blocks,size_t nb_blocks);
 void mt_print(uint8_t*** tree,size_t nb_blocks);
 int mt_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tree,size_t nb_blocks);
 size_t mt_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks);
-
-
+size_t mt_integrity_check(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks);
+uint8_t * mt_get_proof_of_inclusion(uint8_t*** authentic,size_t nb_blocks,size_t data_index);
 
 #endif // MERKLE_TREE_H

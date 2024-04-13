@@ -62,7 +62,7 @@ uint8_t*** mt_build(uint8_t** data_blocks,size_t nb_blocks){
             if(i == 0 ){
                 if(j != nb_blocks){
 #if TEST
-                    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+                    printf(ANSI_COLOR_RESET"\ntap to continue\n");
                     getc(stdin);       
 #endif //TEST
                     printf(ANSI_COLOR_RED"\n--------DATA BLOCK %ld--------\n",j);
@@ -84,7 +84,7 @@ uint8_t*** mt_build(uint8_t** data_blocks,size_t nb_blocks){
         }
         while(index < nodes_per_level){
 #if TEST
-                    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+                    printf(ANSI_COLOR_RESET"\ntap to continue\n");
                     getc(stdin);       
 #endif //TEST
             if(i == 0){                                                         // If first level , then just hash the data.
@@ -128,7 +128,7 @@ uint8_t*** mt_build(uint8_t** data_blocks,size_t nb_blocks){
     nodes_per_level = nodes_per_level/2;
     }
 #if TEST
-    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+    printf(ANSI_COLOR_RESET"\ntap to continue\n");
     getc(stdin);       
 #endif //TEST
     PRINT_LEVEL_INFO(depth,0,0,0,ROOT);
@@ -216,7 +216,7 @@ int mt_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tr
 
     while(current_level < depth-1){
 #if TEST
-                    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+                    printf(ANSI_COLOR_RESET"\ntap to continue\n");
                     getc(stdin);       
 #endif //TEST
         printf(ANSI_COLOR_RED"-----[%ld][%ld]-----\n",current_level+1,current_index/2);
@@ -240,13 +240,13 @@ int mt_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tr
         current_index/=2;
     }
 #if TEST
-                    printf(ANSI_COLOR_RESET"\ntype to continue...\n");
+                    printf(ANSI_COLOR_RESET"\ntap to continue\n");
                     getc(stdin);       
 #endif //TEST   
     printf(ANSI_COLOR_RESET"\n################################\n");
     print_hash(merkle_root_hash,HASH_SIZE,ANSI_COLOR_YELLOW"VALID MERKLE ROOT");
     print_hash(current_hash,HASH_SIZE,ANSI_COLOR_RESET"MERKLE ROOT FOUND");
-    if(tth_t_compare(current_hash,merkle_root_hash) == 0){                              //Compare the merkle root hash found with the starting one.
+    if(tth_t_compare(current_hash,merkle_root_hash) == 0){                              //Compare the merkle root my hash with the starting one.
         printf(ANSI_COLOR_GREEN"VALID\n");
         printf(ANSI_COLOR_RESET"################################\n");
         return 1;
@@ -258,21 +258,62 @@ int mt_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tr
 }
 
 size_t mt_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks){
+    printf(ANSI_COLOR_YELLOW"\nFINDING CORRUPTED DATA\n"ANSI_COLOR_RESET);
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
     size_t current_index = 0;
     for(int level = depth-2 ;level >= 0 ; level--){
-        printf("level = %ld\n",level);
         for(size_t i = 0 ; i<2; i++){
+#if TEST
+            printf(ANSI_COLOR_RESET"\ntap to continue\n");
+            getc(stdin); 
+#endif//TEST
             current_index+=i;
+            printf(ANSI_COLOR_RESET"\n-------------------------------\n");
+            printf(ANSI_COLOR_RESET"level %d | index %ld\n",level,current_index);
             if(tth_t_compare(authentic[level][current_index],check[level][current_index]) != 0){
-                current_index =current_index*2;
-                print_hash(authentic[level][current_index],HASH_SIZE,"auth");
-                print_hash(check[level][current_index],HASH_SIZE,"check");
+                print_hash(authentic[level][current_index],HASH_SIZE,ANSI_COLOR_YELLOW"authentic hash:");
+                print_hash(check[level][current_index],HASH_SIZE,ANSI_COLOR_RED"my hash:");
+                if(level != 0)
+                    current_index =current_index*2;
+                else{
+                    printf(ANSI_COLOR_MAGENTA"DATA # %ld IS CORRUPTED\n"ANSI_COLOR_RESET,current_index);
+                    return current_index;
+                }
                break;
             }
+            print_hash(authentic[level][current_index],HASH_SIZE,ANSI_COLOR_YELLOW"authentic hash:");
+            print_hash(check[level][current_index],HASH_SIZE,ANSI_COLOR_GREEN"my hash:");
         }
     }
-    return 0;
-
+    return nb_blocks+1; // it will never return.
 }
-//uint8_t ** mt_get_proof_of_inclusion
+size_t mt_integrity_check(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks){
+    printf(ANSI_COLOR_YELLOW"\nCHECKING INTEGRITY\n"ANSI_COLOR_RESET);
+    size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
+    size_t corrupt_data_index = nb_blocks+1;
+    if(tth_t_compare(authentic[depth-1][0],check[depth-1][0]) != 0){
+        print_hash(authentic[depth-1][0],HASH_SIZE,ANSI_COLOR_YELLOW"AUTHENTIC ROOT HASH\n");
+        print_hash(check[depth-1][0],HASH_SIZE,ANSI_COLOR_RED"MY ROOT HASH\n"ANSI_COLOR_RESET);
+        corrupt_data_index = mt_find_corrupt_data(authentic,check,nb_blocks);
+        return corrupt_data_index;
+    }
+    print_hash(authentic[depth-1][0],HASH_SIZE,ANSI_COLOR_YELLOW"\nAUTHENTIC ROOT HASH");
+    print_hash(check[depth-1][0],HASH_SIZE,ANSI_COLOR_GREEN"\nMY ROOT HASH");
+    return corrupt_data_index;
+}
+
+
+uint8_t * mt_get_proof_of_inclusion(uint8_t*** authentic,size_t nb_blocks,size_t data_index){
+    size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
+    uint8_t* needed_idx = malloc((depth-1)* sizeof (uint8_t));
+    size_t level = 0;size_t current_index = data_index;
+    while(level < depth -1){
+        if(current_index %2 == 0)
+            needed_idx[level]=current_index+1;
+        else
+            needed_idx[level]=current_index-1;
+        current_index=current_index/2;
+        level++;
+    }
+    return needed_idx;
+}
