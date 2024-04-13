@@ -35,10 +35,10 @@
                 break;\
         }\
     }while(0)
-struct merkle_tree{
+struct mt{
     uint8_t hash[HASH_SIZE];
-    struct merkle_tree* left;
-    struct merkle_tree* right;
+    struct mt* left;
+    struct mt* right;
 };
 enum log_type{
     NORMAL,
@@ -46,29 +46,29 @@ enum log_type{
     DUPLICATE,
     ROOT,
 };
-typedef struct merkle_tree merkle_tree;
+typedef struct mt mt;
 /**
- * @brief This function creates a merkle_tree with empty hash = {0,0,0,0,0}
+ * @brief This function creates a mt with empty hash = {0,0,0,0,0}
  * @return A dynamically allocated pointer to the root of merkle tree.
 */
-merkle_tree* merkle_tree_init();
+mt* mt_init();
 
 /**
  *@brief This function prints a content of a merkle tree node; 
  * 
 */
-void merkle_tree_print_node(merkle_tree* node);
+void mt_print_node(mt* node);
 
 /**
  *@brief This function prints a content of a merkle tree node; 
  * 
 */
-void merkle_tree_print_tree(merkle_tree* tree);
+void mt_print_tree(mt* tree);
 
-uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks);
-void merkle_tree_print(uint8_t*** tree,size_t nb_blocks);
-int merkle_tree_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tree,size_t nb_blocks);
-size_t merkle_tree_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks);
+uint8_t*** mt_build(uint8_t** data_blocks,size_t nb_blocks);
+void mt_print(uint8_t*** tree,size_t nb_blocks);
+int mt_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tree,size_t nb_blocks);
+size_t mt_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks);
 
 
 

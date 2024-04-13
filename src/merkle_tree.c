@@ -1,9 +1,9 @@
 #include "merkle_tree.h"
 
-merkle_tree* merkle_tree_init(){
-    merkle_tree* tree = malloc(sizeof (merkle_tree));
+mt* mt_init(){
+    mt* tree = malloc(sizeof (mt));
     if(tree == NULL){
-        perror("[merkle_tree_init][malloc]");
+        perror("[mt_init][malloc]");
         return NULL;
     }
     memset(tree->hash,0,HASH_SIZE);
@@ -11,23 +11,23 @@ merkle_tree* merkle_tree_init(){
     tree->right=NULL;
     return tree;
 }
-void merkle_tree_print_node(merkle_tree* node){
+void mt_print_node(mt* node){
     if(node == NULL){
         printf("merkle tree is NULL\n");
         return ;
     }
     print_hash(node->hash,HASH_SIZE,"hash");
 }
-void merkle_tree_print_tree(merkle_tree* tree){
-    merkle_tree_print_node(tree);
+void mt_print_tree(mt* tree){
+    mt_print_node(tree);
     if(tree->left != NULL){
-        merkle_tree_print_tree(tree->left);
+        mt_print_tree(tree->left);
     }
     if(tree->right != NULL){
-        merkle_tree_print_tree(tree->right);
+        mt_print_tree(tree->right);
     }
 }
-uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
+uint8_t*** mt_build(uint8_t** data_blocks,size_t nb_blocks){
     assert(data_blocks != NULL && nb_blocks > 1);
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
     size_t nodes_per_level = nb_blocks;
@@ -36,7 +36,7 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
     //allocating
     uint8_t*** tree=malloc(depth*sizeof(uint8_t**));
     if(tree == NULL){
-        perror("[merkle_tree_build][malloc]");
+        perror("[mt_build][malloc]");
         exit(EXIT_FAILURE);
     }
     printf(ANSI_COLOR_RED"\n############# DATA BLOCKS TOTAL = %ld##################\n",nb_blocks);
@@ -50,13 +50,13 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
         tree[i] = malloc(nodes_per_level* sizeof(uint8_t*));
         if(tree[i] == NULL){
             
-            perror("[merkle_tree_build][malloc]");
+            perror("[mt_build][malloc]");
             exit(EXIT_FAILURE);
         }
         for(size_t j = 0 ; j < nodes_per_level; j++){
             tree[i][j] = malloc(5 * sizeof (uint8_t));
             if(tree[i][j] == NULL){
-                perror("[merkle_tree_build][malloc]");
+                perror("[mt_build][malloc]");
                 exit(EXIT_FAILURE);
             }
             if(i == 0 ){
@@ -145,7 +145,7 @@ uint8_t*** merkle_tree_build(uint8_t** data_blocks,size_t nb_blocks){
     return tree;
 }
 
-void merkle_tree_print(uint8_t*** tree,size_t nb_blocks){
+void mt_print(uint8_t*** tree,size_t nb_blocks){
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
     size_t nodes_per_level = nb_blocks;
     uint8_t concat[HASH_SIZE*2];
@@ -193,7 +193,7 @@ void merkle_tree_print(uint8_t*** tree,size_t nb_blocks){
     print_hash(concat,HASH_SIZE*2,ANSI_COLOR_BLUE);
     print_hash(tree[depth-1][0],HASH_SIZE,ANSI_COLOR_GREEN);
 }
-int merkle_tree_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tree,size_t nb_blocks){
+int mt_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tree,size_t nb_blocks){
     if(data_index > nb_blocks){
         printf("\n"ANSI_COLOR_RED"[merkle_tree_proof][input_error] data block does not exist (usage : 0 <= data_index < nb_blocks)\n");
         exit(EXIT_FAILURE);
@@ -254,10 +254,10 @@ int merkle_tree_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint
     printf(ANSI_COLOR_RED"CORRUPTED\n");
     printf(ANSI_COLOR_RESET"################################\n");
     return 0;
-
+    
 }
 
-size_t merkle_tree_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks){
+size_t mt_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks){
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
     size_t current_index = 0;
     for(int level = depth-2 ;level >= 0 ; level--){
@@ -275,4 +275,4 @@ size_t merkle_tree_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_
     return 0;
 
 }
-
+//uint8_t ** mt_get_proof_of_inclusion
