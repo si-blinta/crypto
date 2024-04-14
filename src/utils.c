@@ -32,7 +32,6 @@ uint8_t** exctract_blocks_from_file(char* filename,size_t* number_blocks){
 		if(bytes_read < DATA_BLOCK_SIZE){
 			data_blocks[i][bytes_read] = 32; 
 		}
-		for(size_t j = 0 ; j < DATA_BLOCK_SIZE ; j++)data_blocks[i][j]%=64;
 
 	}
 	fclose(file);
