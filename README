@@ -1,0 +1,8 @@
+##Compile test:
+    from root folder: make clean
+                    : make test
+##Run
+    from root folder: bin/test
+
+##Warning:
+    do not modify collision.txt file .

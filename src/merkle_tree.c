@@ -1,44 +1,17 @@
 #include "merkle_tree.h"
 
-mt* mt_init(){
-    mt* tree = malloc(sizeof (mt));
-    if(tree == NULL){
-        perror("[mt_init][malloc]");
-        return NULL;
-    }
-    memset(tree->hash,0,HASH_SIZE);
-    tree->left= NULL;
-    tree->right=NULL;
-    return tree;
-}
-void mt_print_node(mt* node){
-    if(node == NULL){
-        printf("merkle tree is NULL\n");
-        return ;
-    }
-    print_hash(node->hash,HASH_SIZE,"hash");
-}
-void mt_print_tree(mt* tree){
-    mt_print_node(tree);
-    if(tree->left != NULL){
-        mt_print_tree(tree->left);
-    }
-    if(tree->right != NULL){
-        mt_print_tree(tree->right);
-    }
-}
 uint8_t*** mt_build(uint8_t** data_blocks,size_t nb_blocks){
     assert(data_blocks != NULL && nb_blocks > 1);
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
     size_t nodes_per_level = nb_blocks;
     uint8_t concat[HASH_SIZE*2];
     uint8_t hash[HASH_SIZE];
-    //allocating
     uint8_t*** tree=malloc(depth*sizeof(uint8_t**));
     if(tree == NULL){
         perror("[mt_build][malloc]");
         exit(EXIT_FAILURE);
     }
+    printf(ANSI_COLOR_YELLOW"\nBUILDING MERKLE TREE\n"ANSI_COLOR_RESET);
     printf(ANSI_COLOR_RED"\n############# DATA BLOCKS TOTAL = %ld##################\n",nb_blocks);
 #if TEST
     getc(stdin); 
@@ -142,9 +115,26 @@ uint8_t*** mt_build(uint8_t** data_blocks,size_t nb_blocks){
     memcpy(tree[depth-1][0],hash,HASH_SIZE);
 
     print_hash(hash,HASH_SIZE,ANSI_COLOR_GREEN);
+    printf(ANSI_COLOR_RESET"\n################################\n");
     return tree;
 }
-
+void mt_destroy(uint8_t*** tree, size_t nb_blocks) {
+    size_t depth = (size_t)ceil(log2(nb_blocks)) + 1;
+    size_t nodes_per_level = nb_blocks;
+    for (size_t level = 0; level < depth-1; level++) {
+        if(nodes_per_level % 2 !=0)
+            nodes_per_level++;
+        for (size_t index = 0; index < nodes_per_level; index++) {
+            printf("free level %ld | index %ld\n",level,index);
+            free(tree[level][index]);
+        }
+        free(tree[level]);
+        nodes_per_level = nodes_per_level/2;
+    }
+    free(tree[depth-1][0]);
+    printf("free level %ld | index %d\n",depth-1,0);
+    free(tree);
+}
 void mt_print(uint8_t*** tree,size_t nb_blocks){
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
     size_t nodes_per_level = nb_blocks;
@@ -192,13 +182,14 @@ void mt_print(uint8_t*** tree,size_t nb_blocks){
 	memcpy(concat+HASH_SIZE,tree[depth-2][1],HASH_SIZE);
     print_hash(concat,HASH_SIZE*2,ANSI_COLOR_BLUE);
     print_hash(tree[depth-1][0],HASH_SIZE,ANSI_COLOR_GREEN);
+    printf(ANSI_COLOR_RESET);
 }
-int mt_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tree,size_t nb_blocks){
+int mt_proof_from_merkle_tree(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tree,size_t nb_blocks){
     if(data_index > nb_blocks){
         printf("\n"ANSI_COLOR_RED"[merkle_tree_proof][input_error] data block does not exist (usage : 0 <= data_index < nb_blocks)\n");
         exit(EXIT_FAILURE);
     }
-    printf(ANSI_COLOR_YELLOW"\nGENERATING MERKLE PROOF FOR DATA #%ld\n",data_index);
+    printf(ANSI_COLOR_YELLOW"\nGENERATING MERKLE PROOF FOR DATA #%ld USING MERKLE TREE\n",data_index);
 #if TEST
                     getc(stdin);       
 #endif //TEST
@@ -257,6 +248,7 @@ int mt_proof(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t*** tr
     
 }
 
+
 size_t mt_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks){
     printf(ANSI_COLOR_YELLOW"\nFINDING CORRUPTED DATA\n"ANSI_COLOR_RESET);
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
@@ -283,29 +275,14 @@ size_t mt_find_corrupt_data(uint8_t*** authentic,uint8_t*** check,size_t nb_bloc
             }
             print_hash(authentic[level][current_index],HASH_SIZE,ANSI_COLOR_YELLOW"authentic hash:");
             print_hash(check[level][current_index],HASH_SIZE,ANSI_COLOR_GREEN"my hash:");
+            printf(ANSI_COLOR_RESET);
         }
     }
     return nb_blocks+1; // it will never return.
 }
-size_t mt_integrity_check(uint8_t*** authentic,uint8_t*** check,size_t nb_blocks){
-    printf(ANSI_COLOR_YELLOW"\nCHECKING INTEGRITY\n"ANSI_COLOR_RESET);
+size_t * mt_get_proof_of_inclusion(size_t nb_blocks,size_t data_index){
     size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
-    size_t corrupt_data_index = nb_blocks+1;
-    if(tth_t_compare(authentic[depth-1][0],check[depth-1][0]) != 0){
-        print_hash(authentic[depth-1][0],HASH_SIZE,ANSI_COLOR_YELLOW"AUTHENTIC ROOT HASH\n");
-        print_hash(check[depth-1][0],HASH_SIZE,ANSI_COLOR_RED"MY ROOT HASH\n"ANSI_COLOR_RESET);
-        corrupt_data_index = mt_find_corrupt_data(authentic,check,nb_blocks);
-        return corrupt_data_index;
-    }
-    print_hash(authentic[depth-1][0],HASH_SIZE,ANSI_COLOR_YELLOW"\nAUTHENTIC ROOT HASH");
-    print_hash(check[depth-1][0],HASH_SIZE,ANSI_COLOR_GREEN"\nMY ROOT HASH");
-    return corrupt_data_index;
-}
-
-
-uint8_t * mt_get_proof_of_inclusion(uint8_t*** authentic,size_t nb_blocks,size_t data_index){
-    size_t depth = (size_t) ceil(log2(nb_blocks)) +1  ;
-    uint8_t* needed_idx = malloc((depth-1)* sizeof (uint8_t));
+    size_t* needed_idx = malloc((depth-1)* sizeof (size_t));
     size_t level = 0;size_t current_index = data_index;
     while(level < depth -1){
         if(current_index %2 == 0)
@@ -316,4 +293,63 @@ uint8_t * mt_get_proof_of_inclusion(uint8_t*** authentic,size_t nb_blocks,size_t
         level++;
     }
     return needed_idx;
+}
+int mt_proof_from_additional_data(size_t data_index,uint8_t data_block[DATA_BLOCK_SIZE],uint8_t* root_hash,uint8_t** add_data,size_t levels){
+  printf(ANSI_COLOR_YELLOW"\nGENERATING MERKLE PROOF FOR DATA #%ld USING ADDITIONAL DATA\n",data_index);
+  uint8_t concat[2*HASH_SIZE];
+  uint8_t current_hash[HASH_SIZE];
+  size_t current_level = 0;
+  size_t current_index = data_index; // useful for distinguishing left or right sibling
+  tth_t_calc_hash(current_hash,data_block,DATA_BLOCK_SIZE);
+  while(current_level < levels){
+#if TEST
+    printf(ANSI_COLOR_RESET"\ntap to continue\n");
+    getc(stdin);       
+#endif //TEST
+    printf(ANSI_COLOR_RESET"################################\n");
+    printf(ANSI_COLOR_RESET"LEVEL %ld \n",current_level+1);
+    if(current_index%2 == 0){//left sibling
+        memcpy(concat,current_hash,HASH_SIZE) ; 
+        memcpy(concat+HASH_SIZE,add_data[current_level],HASH_SIZE);
+        print_hash(current_hash,HASH_SIZE, ANSI_COLOR_CYAN); 
+        printf(ANSI_COLOR_RESET "       +"); 
+        print_hash(add_data[current_level], HASH_SIZE, ANSI_COLOR_CYAN); 
+        printf(ANSI_COLOR_RESET "       ="); 
+        
+        }
+    else{
+        memcpy(concat,add_data[current_level],HASH_SIZE) ; 
+        memcpy(concat+HASH_SIZE,current_hash,HASH_SIZE);
+        
+        print_hash(add_data[current_level],HASH_SIZE, ANSI_COLOR_CYAN); 
+        printf(ANSI_COLOR_RESET "       +"); 
+        print_hash(current_hash, HASH_SIZE, ANSI_COLOR_CYAN); 
+        printf(ANSI_COLOR_RESET "       ="); 
+        
+        }
+        print_hash(concat,HASH_SIZE*2,ANSI_COLOR_BLUE"");
+        tth_t_calc_hash(current_hash,concat,HASH_SIZE*2);
+        print_hash(current_hash,HASH_SIZE,"hash");
+        
+        
+    current_index=current_index/2;
+    current_level++;
+  }
+  printf(ANSI_COLOR_RESET"################################\n");
+  printf(ANSI_COLOR_YELLOW"\nRESULTS :\n\n");
+  if(tth_t_compare(current_hash,root_hash)==0){
+    print_hash(root_hash,HASH_SIZE,ANSI_COLOR_RESET"authentic root hash");
+    printf("\n");
+    print_hash(current_hash,HASH_SIZE,ANSI_COLOR_GREEN"my root hash");
+    printf(ANSI_COLOR_YELLOW"\nDATA #%ld IS VALID\n"ANSI_COLOR_RESET,data_index);
+    return 1;
+  }
+  else{
+    print_hash(root_hash,HASH_SIZE,ANSI_COLOR_RESET"authentic root hash");
+    printf("\n");
+    print_hash(current_hash,HASH_SIZE,ANSI_COLOR_RED"my root hash");
+    printf(ANSI_COLOR_YELLOW"\nDATA #%ld IS CORRUPTED\n"ANSI_COLOR_RESET,data_index);
+    return 0;
+  }
+    
 }

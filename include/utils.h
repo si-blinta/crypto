@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include "tth.h"
-// Define ANSI escape codes for colors
+// Colors
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
